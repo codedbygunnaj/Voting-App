@@ -1,0 +1,45 @@
+**voting application**
+
+how to think:
+    -> WHAT: functionality where user can give vote to the given set of candidates.
+
+        - Models?
+        - Routes?
+
+------------------------------------------------------------------------------        
+        
+        functionality:
+
+            1. user sign-in/sign-up
+            2. see the list of candidates
+            *3. vote one of the candidates only
+            *4. unique user -> login_credentialsto be "aadharcard number"
+            5. create a route showing the **list of candidates** and their live vote counts sorted as **per their vote counts** 
+                -> basically realtime
+            6. List of "participating candidates" which all users can see.
+            7. List of electors which only admin can see :. "Admin access -> role based access (authorization)"
+            8. users can change their password.
+            9. user can login only with aadhar card number + password
+            10. admin can't vote even though he's an admin
+
+------------------------------------------------------------------------------
+
+        - Routes:
+            
+            1. user authentication:
+                /signup: POST (new account)
+                /login: POST (login existing account)
+            2. voting:
+                /candidates: GET (Get the list of candidates.)
+                /vote/:candidateId: POST (Vote for a single candidate)
+            3. Vote counts:
+                /vote/counts: GET (get list of candidate sorted by vote counts)
+            4. user profile:
+                /profile: GET (see own information)
+                /profile/password: PUT (change user's password)
+            5. admin candidate management:
+                /candidates: POST (create new candidate)
+                /candidates/:candidateId: PUT (update an existing candidate)
+                /candidates/:candidateId: DELETE (delete a candidate from the list)
+
+------------------------------------------------------------------------------
