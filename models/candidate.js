@@ -7,11 +7,18 @@ const candidateSchema = new mongoose.Schema({
     },
     Party:{
         type:String,
-        required:true
+        required:true,
+        unique:true
     },
     Age_Of_Contender:{
         type:Number,
         required:true
+    },
+    AadharCard_Number:{
+        type:Number,
+        required:true,
+        unique:true
+        //citizenShip verification:
     },
     Votes:{
         type:[
