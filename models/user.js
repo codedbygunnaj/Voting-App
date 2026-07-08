@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-// const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
     Name:{
@@ -45,8 +45,38 @@ const userSchema = new mongoose.Schema({
     Is_Voted:{
         type:Boolean,
         default:false
+    },
+    Voted_to:{
+        type:String,
+        required:true
     }
 })
+
+userSchema.pre('save',async function(){
+    const activeUser = this;
+    
+    //we'll hash the password If: a) new b) modified
+
+    if(!activeUser.isModified('Password')) return;
+    
+    try{
+        const salt = await bcrypt.genSalt(10);
+        const updatedPwd = await bcrypt.hash(activeUser.Password,salt);
+        
+        activeUser.Password = updatedPwd;
+    }catch(err){
+        return err;
+    } 
+})
+
+userSchema.methods.comparePassword = async function(pwd){
+    try{
+        const isAMatch = bcrypt.compare(pwd,this.Password);
+        return isAMatch;
+    }catch(err){
+        throw err;
+    }
+}
 
 const User = mongoose.model('User',userSchema);
 module.exports = User;

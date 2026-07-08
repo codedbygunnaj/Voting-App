@@ -10,6 +10,11 @@ const candidateSchema = new mongoose.Schema({
         required:true,
         unique:true
     },
+    Party_Id:{
+        type:String,
+        required:true,
+        unique:true
+    },
     Age_Of_Contender:{
         type:Number,
         required:true
