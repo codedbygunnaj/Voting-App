@@ -25,6 +25,10 @@ const candidateSchema = new mongoose.Schema({
         unique:true
         //citizenShip verification:
     },
+    Password:{
+        type:String,
+        required:true,
+    },
     Votes:{
         type:[
             {
@@ -45,6 +49,32 @@ const candidateSchema = new mongoose.Schema({
         default:0
     }
 })
+
+candidateSchema.pre('save',async function(){
+    const activeCandidate = this;
+    
+    //we'll hash the password If: a) new b) modified
+
+    if(!activeCandidate.isModified('Password')) return;
+    
+    try{
+        const salt = await bcrypt.genSalt(10);
+        const updatedPwd = await bcrypt.hash(activeCandidate.Password,salt);
+        
+        activeCandidate.Password = updatedPwd;
+    }catch(err){
+        return err;
+    } 
+})
+
+activeCandidate.methods.comparePassword = async function(pwd){
+    try{
+        const isAMatch = bcrypt.compare(pwd,this.Password);
+        return isAMatch;
+    }catch(err){
+        throw err;
+    }
+}
 
 const Candidate = mongoose.model('Candidate',candidateSchema);
 module.exports = Candidate;

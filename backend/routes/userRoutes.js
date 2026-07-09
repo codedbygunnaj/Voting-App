@@ -1,8 +1,9 @@
-const user = require('../models/user');
-const candidate = require('../models/candidate');
+const user = require('../../models/user');
+const candidate = require('../../models/candidate');
 const express = require('express');
 const Router = express.Router();
 const {jwtAuthMiddlewareUsers,generateTokensUsers} = require('../authentication/jwtUser');
+const checkAdminRole = require('../middleWare/admin');
 
 require('dotenv').config();
 
@@ -113,6 +114,10 @@ Router.post('/vote', jwtAuthMiddlewareUsers, async (req, res) => {
             return res.status(404).json({ Error: 'User not found' });
         }
 
+        if (userInformation.Role === 'admin') {
+            return res.status(403).json({ Error: 'Admins are not allowed to vote' });
+        }
+        
         if (userInformation.Age < 18) {
             return res.status(403).json({ Error: 'User is not eligible to vote (must be 18+)' });
         }

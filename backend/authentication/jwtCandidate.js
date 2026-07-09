@@ -19,7 +19,7 @@ const jwtAuthMiddlewareCandidates = (req,res,next)=>{
 }
 
 const generateTokensCandidates = function(candidatePayload){
-    return jwt.sign({candidatePayload},`${process.env.SECRET_KEY_CANDIDATE}`,{expiresIn:'1y'})
+    return jwt.sign(candidatePayload,`${process.env.SECRET_KEY_CANDIDATE}`,{expiresIn:'1y'})
 }
 
 module.exports = {jwtAuthMiddlewareCandidates,generateTokensCandidates}
