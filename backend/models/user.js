@@ -48,7 +48,7 @@ const userSchema = new mongoose.Schema({
     },
     Voted_to:{
         type:String,
-        required:null
+        default:null
     }
 })
 

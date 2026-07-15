@@ -1,14 +1,21 @@
 const express =  require('express');
 const bodyParser = require('body-parser'); 
-// const db = require('../database/db');
-const Candidate = require('../models/candidate');
-const User = require('../models/user')
+const cors = require('cors');
+const db = require('./database/db');
+const userRoutes = require('./routes/userRoutes'); 
+const candidateRoutes = require('./routes/candidateRoutes');
 
 const App = express();
 require('dotenv').config();
+
+App.use(cors());
 App.use(bodyParser.json());
-let PORT = process.env.PORT_NO
+
+App.use('/user', userRoutes);
+App.use('/candidate', candidateRoutes);
+
+let PORT = process.env.PORT_NO || 3000;
 
 App.listen(PORT, ()=>{
-    console.log("Welcome to voting app, an interface designed to study the process of voting alongwith realtime vote updates sorted according to the candidate's votes.")
+    console.log(`Server is running on port ${PORT}...`);
 });

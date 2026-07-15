@@ -1,5 +1,5 @@
-const user = require('../../models/user');
-const candidate = require('../../models/candidate');
+const user = require('../models/user');
+const candidate = require('../models/candidate');
 const express = require('express');
 const Router = express.Router();
 const {jwtAuthMiddlewareUsers,generateTokensUsers} = require('../authentication/jwtUser');
@@ -33,53 +33,60 @@ Router.post('/signup',async (req,res)=>{
     }
 })
 
-Router.post('/login', async (req,res)=>{
-    try{
-        const {aadharNumber,password}= await req.body;
-        const activeUser = await user.findOne({AadharCard_Number: aadharNumber});
-        if(!activeUser) {
-            res.status(400).json({error:'User not found'});
-            return;
+Router.post('/login', async (req, res) => {
+    try {
+        // BUG FIX 1: req.body ke aage se 'await' hata diya. req.body promise nahi hota.
+        const { aadharNumber, password } = req.body; 
+        
+        const activeUser = await user.findOne({ AadharCard_Number: aadharNumber });
+        if (!activeUser) {
+            // Return lagana zaroori hai warna code aage chalta rahega
+            return res.status(400).json({ error: 'User not found' }); 
         }
+        
         const pwd = await activeUser.comparePassword(password);
-        if(!pwd){
-            res.status(400).json({Error:'Password error'});
-            return;
+        if (!pwd) {
+            return res.status(400).json({ Error: 'Password error' });
         }
+        
         const userPayload = {
             id: activeUser.id,
             userAadhar: activeUser.AadharCard_Number
-        }
-        const newToken = generateTokens(userPayload)
+        };
         
-        console.log('New Token:',newToken)
-        console.log('Payload:',userPayload)
+        // BUG FIX 2 (The Main Crash): Tune upar 'generateTokensUsers' import kiya tha, 
+        // par yahan sirf 'generateTokens' likha tha. Isse ReferenceError aa raha tha!
+        const newToken = generateTokensUsers(userPayload); 
         
-        res.status(200).json({newToken:newToken});
-    }catch(err){
-        console.log(err);
-        res.status(500).json({Error: 'Internal server error'});
+        console.log('New Token:', newToken);
+        console.log('Payload:', userPayload);
+        
+        res.status(200).json({ newToken: newToken });
+    } catch (err) {
+        console.log("Login Route Error: ", err);
+        res.status(500).json({ Error: 'Internal server error' });
     }
-})
+});
 
-Router.get('/profile',jwtAuthMiddleware,async (req,res)=>{
-
-    try{
+Router.get('/profile', jwtAuthMiddlewareUsers, async (req, res) => {
+    try {
         const activeUser = req.userInfo;
-        console.log("User data (payload): ",user);
+        
+        // Find by database ID directly
+        const userInformation = await user.findById(activeUser.id);
 
-        const aadharNumber = activeUser.aadharNumber;
-        const userInformation = await user.findOne({AadharCard_Number:aadharNumber});
+        if (!userInformation) {
+            return res.status(404).json({ Error: 'User not found' });
+        }
 
-        res.status(200).json({userInformation});
-    }catch(err){
-        console.log(err);
-        res.status(500).json({Error:'Internal Server Error'});
+        res.status(200).json({ userInformation });
+    } catch(err) {
+        console.log("Profile Error:", err);
+        res.status(500).json({ Error: 'Internal Server Error' });
     }
+});
 
-})
-
-Router.put('/:aadhar',jwtAuthMiddleware,async (req,res)=>{
+Router.put('/:aadhar',jwtAuthMiddlewareUsers,async (req,res)=>{
 
     try{
         const userAadhar = req.params.id;
@@ -166,3 +173,5 @@ Router.get('/viewVote', jwtAuthMiddlewareUsers, async (req, res) => {
         res.status(500).json({ Error: 'Internal Server Error' });
     }
 });
+
+module.exports = Router;

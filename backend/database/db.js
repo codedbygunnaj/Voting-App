@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv').config()
 
 //adding mongodb url
-const mongoURL = `${process.env.MONGO_URL_ATLAS}`
+const mongoURL = `${process.env.MONGO_URL_ATLAS}`;
 
 //setting up mongodb connection:
 mongoose.connect(mongoURL)

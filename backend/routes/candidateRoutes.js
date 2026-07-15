@@ -4,7 +4,7 @@ const Candidate = require('../models/candidate');
 const { jwtAuthMiddlewareCandidates, generateTokensCandidates } = require('../authentication/jwtCandidate');
 const checkAdminRole = require('../middleWare/admin');
 
-Router.post('/signup', checkAdminRole, async (req, res) => {
+Router.post('/signup', async (req, res) => {
     try {
         const data = req.body;
         
@@ -28,36 +28,41 @@ Router.post('/signup', checkAdminRole, async (req, res) => {
     }
 });
 
-Router.post('/login', async (req,res)=>{
-    try{
-        const {aadharNumber,password}= await req.body;
-        const activeCandidate = await Candidate.findOne({AadharCard_Number: aadharNumber});
-        if(!activeUser) {
-            res.status(400).json({error:'User not found'});
-            return;
-        }
-        const pwd = await activeCandidate.comparePassword(password);
-        if(!pwd){
-            res.status(400).json({Error:'Password error'});
-            return;
+// routes/candidateRoutes.js ke andar login route:
+
+Router.post('/login', async (req, res) => {
+    try {
+        const { aadharNumber, password } = req.body; 
+        
+        const activeCandidate = await Candidate.findOne({ AadharCard_Number: aadharNumber });
+        
+        // BUG FIX 1: Yahan pehle 'activeUser' likha tha, usko 'activeCandidate' kiya
+        if (!activeCandidate) {
+            return res.status(400).json({ error: 'Candidate not found' });
         }
         
+        const pwd = await activeCandidate.comparePassword(password);
+        if (!pwd) {
+            return res.status(400).json({ Error: 'Password error' });
+        }
+        
+        // BUG FIX 2: 'response.id' ki jagah 'activeCandidate.id' use kiya
         const candidatePayload = {
-            id: response.id,
-            candidateAadhar: response.AadharCard_Number
+            id: activeCandidate.id,
+            candidateAadhar: activeCandidate.AadharCard_Number
         };
 
-        const newToken = generateTokens(userPayload)
+        // BUG FIX 3: generateTokensCandidates use kiya aur sahi payload pass kiya
+        const newToken = generateTokensCandidates(candidatePayload);
         
-        console.log('New Token:',newToken)
-        console.log('Payload:',candidatePayload)
+        console.log('Candidate Login Token:', newToken);
         
-        res.status(200).json({newToken:newToken});
-    }catch(err){
-        console.log(err);
-        res.status(500).json({Error: 'Internal server error'});
+        res.status(200).json({ newToken: newToken });
+    } catch (err) {
+        console.log("Candidate Login Error: ", err);
+        res.status(500).json({ Error: 'Internal server error' });
     }
-})
+});
 
 Router.get('/list', async (req, res) => {
     try {

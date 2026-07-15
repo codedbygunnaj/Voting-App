@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
 const candidateSchema = new mongoose.Schema({
     Name:{
@@ -50,31 +51,32 @@ const candidateSchema = new mongoose.Schema({
     }
 })
 
-candidateSchema.pre('save',async function(){
+
+candidateSchema.pre('save', async function(){
     const activeCandidate = this;
     
-    //we'll hash the password If: a) new b) modified
-
+    // we'll hash the password If: a) new b) modified
     if(!activeCandidate.isModified('Password')) return;
     
     try{
         const salt = await bcrypt.genSalt(10);
-        const updatedPwd = await bcrypt.hash(activeCandidate.Password,salt);
+        const updatedPwd = await bcrypt.hash(activeCandidate.Password, salt);
         
         activeCandidate.Password = updatedPwd;
     }catch(err){
-        return err;
+        throw err; 
     } 
-})
+});
 
-activeCandidate.methods.comparePassword = async function(pwd){
+candidateSchema.methods.comparePassword = async function(pwd){
     try{
-        const isAMatch = bcrypt.compare(pwd,this.Password);
+        // BUG FIX 2: Yahan 'await' missing tha.
+        const isAMatch = await bcrypt.compare(pwd, this.Password);
         return isAMatch;
     }catch(err){
         throw err;
     }
-}
+};
 
-const Candidate = mongoose.model('Candidate',candidateSchema);
+const Candidate = mongoose.model('Candidate', candidateSchema);
 module.exports = Candidate;
